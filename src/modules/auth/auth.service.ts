@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CreateAuthDto } from "./dto/create-auth.dto";
 import { UpdateAuthDto } from "./dto/update-auth.dto";
 import { ResponseData } from "src/lib/transformer/response";
+import { CustomException } from "src/lib/exception/custom-exception";
 
 @Injectable()
 export class AuthService {
@@ -13,9 +14,9 @@ export class AuthService {
     }
 
     findAll() {
-        let num = 10;
+        let num = 11;
         if (num > 10) {
-            throw new HttpException("kya be?", HttpStatus.BAD_GATEWAY);
+            throw new CustomException("hello", HttpStatus.BAD_REQUEST);
         }
         return ResponseData({
             message: "hello",

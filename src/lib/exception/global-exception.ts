@@ -1,5 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
+import { ResponseError } from "../transformer/response";
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -17,8 +18,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
             if (typeof response === "object" && response !== null) {
                 const { message: msg, error, errors: errs } = response as any;
-
-                // ValidationPipe error case: message is an array of strings
                 if (Array.isArray(msg)) {
                     errors = msg;
                     message = "Validation failed";
@@ -35,15 +34,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         console.error("Exception:", exception);
 
-        res.status(status).json({
-            statusCode: status,
-            response: {
-                status: "error",
-                error: {
-                    message,
-                    ...(errors ? { errors } : {}),
-                },
-            },
-        });
+        res.status(status).json(ResponseError(status, message, errors));
     }
 }
