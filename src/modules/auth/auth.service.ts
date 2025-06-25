@@ -10,7 +10,9 @@ import { CustomException } from "src/lib/exception/custom-exception";
 import { eq } from "drizzle-orm";
 import { users } from "src/db/schema/user";
 
-const DB_ERRORS = {};
+const DB_ERRORS = {
+    auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),
+};
 
 @Injectable()
 export class AuthService {
@@ -22,13 +24,14 @@ export class AuthService {
 
     async generateToken(payload: TokenPayload, type: "access" | "refresh") {
         const expiresIn = type === "access" ? process.env.ACCESS_TOKEN_EXPIRY : process.env.REFRESH_TOKEN_EXPIRY;
-        return await this.jwtService.signAsync(payload, { expiresIn });
+        const secret = type === "access" ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET;
+        return await this.jwtService.signAsync(payload, { secret, expiresIn });
     }
 
     @HandleDbErrors(DB_ERRORS)
     async register(input: Register): Promise<{ accessToken: string; refreshToken: string }> {
-        const { email, password, firstName, lastName } = input || {};
-        const hashedPassword = await hash(password, process.env.SALT_ROUNDS || 10);
+        const { email, password, firstName, lastName } = input;
+        const hashedPassword = await hash(password, +process.env.SALT_ROUNDS! || 10);
 
         const userId = await this.drizzleService.db.transaction(async (tx) => {
             const [credential] = await tx
@@ -53,6 +56,10 @@ export class AuthService {
 
         const accessToken = await this.generateToken({ userId }, "access");
         const refreshToken = await this.generateToken({ userId }, "refresh");
+
+        await this.drizzleService.db.update(auth).set({
+            refreshToken: refreshToken,
+        });
 
         return {
             accessToken,

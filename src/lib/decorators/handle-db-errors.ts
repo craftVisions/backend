@@ -1,33 +1,34 @@
-import { HttpException, InternalServerErrorException } from "@nestjs/common";
+import { HttpException } from '@nestjs/common';
 
 export function HandleDbErrors(errorMap: Record<string, HttpException>): MethodDecorator {
-    return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
-        const originalMethod = descriptor.value;
+  return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
+    const originalMethod = descriptor.value;
 
-        descriptor.value = async function (...args: any[]) {
-            try {
-                return await originalMethod.apply(this, args);
-            } catch (error: any) {
-                const cause = error?.cause ?? error;
-                let constraint = cause?.constraint;
+    descriptor.value = async function (...args: any[]) {
+      try {
+        return await originalMethod.apply(this, args);
+      } catch (error: any) {
+        const cause = error?.cause ?? error;
 
-                if (!constraint && cause?.message) {
-                    const match = cause.message.match(/"([^"]+)"/);
-                    if (match && match[1]) {
-                        constraint = match[1];
-                    }
-                }
+        const isDbError = typeof cause?.code === 'string' && !!cause?.message;
 
-                console.log("Extracted constraint:", constraint);
+        if (!isDbError) {
+          throw error;
+        }
 
-                if (constraint && errorMap[constraint]) {
-                    throw errorMap[constraint];
-                }
+        // Extract constraint name from either cause.constraint or message
+        const constraint =
+          cause?.constraint ||
+          (cause?.message?.match(/"([^"]+?)"/)?.[1] ?? null);
 
-                throw new InternalServerErrorException(cause?.detail || cause?.message || "Unexpected DB error.");
-            }
-        };
+        if (constraint && errorMap[constraint]) {
+          throw errorMap[constraint];
+        }
 
-        return descriptor;
+        throw error;
+      }
     };
+
+    return descriptor;
+  };
 }
