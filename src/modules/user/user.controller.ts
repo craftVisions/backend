@@ -8,12 +8,6 @@ import { IdOnlyDto, ResponseData } from "src/lib/transformer/response";
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    @Post()
-    async create(@Body() createUserDto: CreateUserDto): Promise<IdOnlyDto> {
-        const id = await this.userService.create(createUserDto);
-        return ResponseData({ id });
-    }
-
     @Get()
     findAll() {
         return this.userService.findAll();

@@ -11,9 +11,6 @@ export function HandleDbErrors(errorMap: Record<string, HttpException>): MethodD
                 const cause = error?.cause ?? error;
                 let constraint = cause?.constraint;
 
-                // 🧪 Logging
-                console.log("🔥 Decorator caught DB error");
-
                 if (!constraint && cause?.message) {
                     const match = cause.message.match(/"([^"]+)"/);
                     if (match && match[1]) {
