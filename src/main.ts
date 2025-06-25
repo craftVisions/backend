@@ -16,8 +16,8 @@ async function bootstrap() {
         SwaggerModule.setup("api", app, documentFactory);
     }
 
-    app.useGlobalFilters(new GlobalExceptionFilter());
     app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalFilters(new GlobalExceptionFilter());
     app.useGlobalInterceptors(new LoggingInterceptor());
     await app.listen(process.env.PORT ?? 3000);
 }

@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
-import { AuthModule } from "./modules/auth/auth.module";
 import { ConfigModule } from "@nestjs/config";
-import { DatabaseModule } from "./db/database.module";
+import { SharedModule, AuthModule, UserModule } from "./modules";
 
 @Module({
-    imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, AuthModule],
+    imports: [ConfigModule.forRoot({ isGlobal: true }), SharedModule, AuthModule, UserModule],
     controllers: [AppController],
     providers: [],
 })
