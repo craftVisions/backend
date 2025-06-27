@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your OTP for Password Reset</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        padding: 30px;
+        color: #333;
+      }
+      .container {
+        background-color: #fff;
+        padding: 40px;
+        max-width: 600px;
+        margin: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+      }
+      p {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .otp-box {
+        background-color: #f0f0f0;
+        padding: 16px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: 4px;
+        margin: 20px 0;
+        border-radius: 6px;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Reset Your Password</h1>
+      <p>Hello,</p>
+      <p>
+        You recently requested to reset your password for your <strong>Craft Vision</strong> account. Use the OTP below to proceed:
+      </p>
+      <div class="otp-box">{{otp}}</div>
+      <p>This OTP is valid for the next {{expiry}} minutes. Please do not share it with anyone.</p>
+      <p>If you didn’t request a password reset, you can safely ignore this email.</p>
+      <div class="footer">
+        &copy; Craft Vision. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>

@@ -4,6 +4,10 @@ import { RegisterDto } from "./dto/register.dto";
 import { ResponseData, ResponseDto } from "src/lib/transformer/response";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenGuard } from "src/guards/refresh-token.guard";
+import { ForgotPasswordReqDto, ResetPasswordWithCurrentReqDto, ResetPasswordWithTempToken, VerifyOtpReqDto, VerifyOtpWithEmailReqDto } from "./dto/auth-req.dto";
+import { UserContext } from "src/lib/decorators/user-context";
+import { User } from "src/interfaces/user";
+import { AuthGuard } from "src/guards/auth.guard";
 
 @Controller("auth")
 export class AuthController {
@@ -33,6 +37,44 @@ export class AuthController {
             accessToken,
             refreshToken,
         });
+    }
+
+    @Post("verify-email")
+    async verifyEmail(@Body() dto: ForgotPasswordReqDto, @UserContext() { credentialId }: User) {
+        const { message } = await this.authService.verifyEmail(credentialId, dto.email);
+        return ResponseData({ message });
+    }
+
+    @Post("verify-otp")
+    @UseGuards(AuthGuard)
+    async verifyOtp(@Body() dto: VerifyOtpReqDto, @UserContext() { email }: User) {
+        const { message } = await this.authService.verifyOtp(email, dto.otp);
+        return ResponseData({ message });
+    }
+
+    @Post("forgot-password")
+    async forgotPassword(@Body() dto: ForgotPasswordReqDto) {
+        const { message } = await this.authService.forgotPassword(dto.email);
+        return ResponseData({ message });
+    }
+
+    @Post("verify-otp-with-email")
+    async verifyOtpWithEmail(@Body() dto: VerifyOtpWithEmailReqDto) {
+        const { message } = await this.authService.verifyOtp(dto.email, dto.otp);
+        return ResponseData({ message });
+    }
+
+    @Patch("reset-password")
+    @UseGuards(AuthGuard)
+    async resetPasswordWithCurrentPassword(@Body() dto: ResetPasswordWithCurrentReqDto, @UserContext() { email, credentialId }: User) {
+        const { message } = await this.authService.resetPasswordWithCurrentPassword(credentialId, dto.currentPassword, dto.newPassword);
+        return ResponseData({ message });
+    }
+
+    @Patch("reset-password-with-temp-token")
+    async resetPasswordWithTempToken(@Body() dto: ResetPasswordWithTempToken) {
+        const { message } = await this.authService.resetPasswordWithTempToken(dto.tempToken, dto.newPassword);
+        return ResponseData({ message });
     }
 
     @Get("refresh/token")
