@@ -13,6 +13,8 @@ import { User } from "src/interfaces/user";
 import { ConfigService } from "@nestjs/config";
 import { Mailer } from "src/lib/mailer/mailer.service";
 import { emails } from "src/constants/email.constant";
+import { OtpService } from "./otp.service";
+import { TemplateService } from "src/lib/mailer/templates/template.service";
 
 const DB_ERRORS = {
     auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),
@@ -26,12 +28,13 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly mailer: Mailer,
+        private readonly otpService: OtpService,
+        private readonly templateService: TemplateService
     ) {}
 
     async generateToken(payload: User, type: "access" | "refresh") {
         const secret = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_SECRET`);
         const expiresIn = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_EXPIRY`);
-        console.log('expires in --> ', expiresIn);
         return await this.jwtService.signAsync(payload, { secret, expiresIn });
     }
 
@@ -73,9 +76,17 @@ export class AuthService {
 
         await this.updateRefreshToken(user.credentialId, refreshToken);
 
+        const otp = await this.otpService.createOtp(user.credentialId, "email_verification");
+
+        const html = this.templateService.render("email-verification/html.hbs", {
+            otp,
+            expiry: this.configService.get("OTP_EXPIRY_MINUTES") || 5,
+        });
+
         const mailOptions = {
             to: email,
-            ...emails.SUCCESSFULLY_REGISTERED,
+            subject: emails.EMAIL_VERIFICATION_SUBJECT,
+            html,
         };
 
         try {
