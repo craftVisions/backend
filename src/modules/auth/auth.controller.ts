@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
-import { ResponseData } from "src/lib/transformer/response";
+import { ResponseData, ResponseDto } from "src/lib/transformer/response";
 import { LoginDto } from "./dto/login.dto";
+import { RefreshTokenGuard } from "src/guards/refresh-token.guard";
 
 @Controller("auth")
 export class AuthController {
@@ -32,5 +33,12 @@ export class AuthController {
             accessToken,
             refreshToken,
         });
+    }
+
+    @Get("refresh/token")
+    @UseGuards(RefreshTokenGuard)
+    async refreshToken(@Req() req: any): Promise<ResponseDto<{ accessToken: string }>> {
+        const accessToken = req["accessToken"];
+        return ResponseData({ accessToken });
     }
 }

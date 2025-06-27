@@ -31,7 +31,12 @@ export class AuthService {
     async generateToken(payload: User, type: "access" | "refresh") {
         const secret = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_SECRET`);
         const expiresIn = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_EXPIRY`);
+        console.log('expires in --> ', expiresIn);
         return await this.jwtService.signAsync(payload, { secret, expiresIn });
+    }
+
+    private async updateRefreshToken(credentialId: string, refreshToken: string) {
+        await this.drizzleService.db.update(auth).set({ refreshToken }).where(eq(auth.id, credentialId));
     }
 
     @HandleDbErrors(DB_ERRORS)
@@ -39,7 +44,7 @@ export class AuthService {
         const { email, password, firstName, lastName } = input;
         const hashedPassword = await hash(password, +process.env.SALT_ROUNDS! || 10);
 
-        const userId = await this.drizzleService.db.transaction(async (tx) => {
+        const user = await this.drizzleService.db.transaction(async (tx) => {
             const [credential] = await tx
                 .insert(auth)
                 .values({
@@ -48,7 +53,7 @@ export class AuthService {
                 })
                 .returning({ id: auth.id });
 
-            const id = this.userService.createUser(
+            const id = await this.userService.createUser(
                 {
                     firstName,
                     lastName,
@@ -57,15 +62,16 @@ export class AuthService {
                 },
                 tx,
             );
-            return id;
+            return {
+                credentialId: credential.id,
+                userId: id,
+            };
         });
 
-        const accessToken = await this.generateToken({ userId }, "access");
-        const refreshToken = await this.generateToken({ userId }, "refresh");
+        const accessToken = await this.generateToken({ userId: user.userId }, "access");
+        const refreshToken = await this.generateToken({ userId: user.userId }, "refresh");
 
-        await this.drizzleService.db.update(auth).set({
-            refreshToken: refreshToken,
-        });
+        await this.updateRefreshToken(user.credentialId, refreshToken);
 
         const mailOptions = {
             to: email,
@@ -92,6 +98,7 @@ export class AuthService {
             .select({
                 email: auth.email,
                 password: auth.password,
+                id: auth.id,
             })
             .from(auth)
             .where(eq(auth.email, email))
@@ -110,9 +117,22 @@ export class AuthService {
 
         const accessToken = await this.generateToken({ userId: user.id }, "access");
         const refreshToken = await this.generateToken({ userId: user.id }, "refresh");
+
+        // update the refresh token in the database
+        await this.updateRefreshToken(credential.id, refreshToken);
+
         return {
             accessToken,
             refreshToken,
         };
+    }
+
+    @HandleDbErrors(DB_ERRORS)
+    async validateRefreshToken(token: string): Promise<boolean> {
+        const [storedToken] = await this.drizzleService.db.select().from(auth).where(eq(auth.refreshToken, token)).limit(1);
+        if (!storedToken) {
+            throw new CustomException("Invalid Refresh Token", HttpStatus.UNAUTHORIZED);
+        }
+        return true;
     }
 }
