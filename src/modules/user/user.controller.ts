@@ -1,16 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
-import { UserService } from "./user.service";
-import { CreateUserDto } from "./dto/create-user.dto";
+import { Body, Controller, Delete, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import { ResponseData } from "src/lib/transformer/response";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { IdOnlyDto, ResponseData } from "src/lib/transformer/response";
+import { UserService } from "./user.service";
+import { AuthGuard } from "src/guards/auth.guard";
+import { UserContext } from "src/lib/decorators/user-context";
+import { User } from "src/interfaces/user";
 
 @Controller("user")
+@UseGuards(AuthGuard)
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Get()
-    findAll() {
-        return this.userService.findAll();
+    async findAll(@UserContext() {userId}: User) {
+        console.log({userId})
+        const users = await this.userService.searchUsers();
+        return ResponseData({ users });
     }
 
     @Get(":id")

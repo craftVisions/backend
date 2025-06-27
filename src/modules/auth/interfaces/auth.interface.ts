@@ -10,6 +10,3 @@ export interface Login {
     password: string; 
 }
 
-export interface TokenPayload {
-    userId: string; 
-}

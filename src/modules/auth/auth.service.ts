@@ -3,12 +3,14 @@ import { JwtService } from "@nestjs/jwt";
 import { DrizzleService } from "src/db/drizzle.service";
 import { auth } from "src/db/schema";
 import { UserService } from "../user/user.service";
-import { Login, Register, TokenPayload } from "./interfaces/auth.interface";
+import { Login, Register } from "./interfaces/auth.interface";
 import { HandleDbErrors } from "src/lib/decorators/handle-db-errors";
 import { hash, compare } from "bcrypt";
 import { CustomException } from "src/lib/exception/custom-exception";
 import { eq } from "drizzle-orm";
 import { users } from "src/db/schema/user";
+import { User } from "src/interfaces/user";
+import { ConfigService } from "@nestjs/config";
 
 const DB_ERRORS = {
     auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),
@@ -20,11 +22,12 @@ export class AuthService {
         private readonly drizzleService: DrizzleService,
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
     ) {}
 
-    async generateToken(payload: TokenPayload, type: "access" | "refresh") {
-        const expiresIn = type === "access" ? process.env.ACCESS_TOKEN_EXPIRY : process.env.REFRESH_TOKEN_EXPIRY;
-        const secret = type === "access" ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET;
+    async generateToken(payload: User, type: "access" | "refresh") {
+        const secret = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_SECRET`);
+        const expiresIn = this.configService.get<string>(`${type.toUpperCase()}_TOKEN_EXPIRY`);
         return await this.jwtService.signAsync(payload, { secret, expiresIn });
     }
 

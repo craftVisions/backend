@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/commo
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { ResponseData } from "src/lib/transformer/response";
+import { LoginDto } from "./dto/login.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -22,7 +23,7 @@ export class AuthController {
     }
 
     @Post("login")
-    async login(@Body() dto: RegisterDto) {
+    async login(@Body() dto: LoginDto) {
         const { accessToken, refreshToken } = await this.authService.login({
             email: dto.email,
             password: dto.password,

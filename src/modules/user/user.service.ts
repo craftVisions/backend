@@ -21,8 +21,9 @@ export class UserService {
         return user.id;
     }
 
-    findAll() {
-        return `This action returns all user`;
+    async searchUsers() {
+        const usersList = await this.drizzleService.db.select().from(users);
+        return usersList; 
     }
 
     findOne(id: number) {
