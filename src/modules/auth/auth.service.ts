@@ -11,6 +11,8 @@ import { eq } from "drizzle-orm";
 import { users } from "src/db/schema/user";
 import { User } from "src/interfaces/user";
 import { ConfigService } from "@nestjs/config";
+import { Mailer } from "src/lib/mailer/mailer.service";
+import { emails } from "src/constants/email.constant";
 
 const DB_ERRORS = {
     auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),
@@ -23,6 +25,7 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
+        private readonly mailer: Mailer,
     ) {}
 
     async generateToken(payload: User, type: "access" | "refresh") {
@@ -63,6 +66,17 @@ export class AuthService {
         await this.drizzleService.db.update(auth).set({
             refreshToken: refreshToken,
         });
+
+        const mailOptions = {
+            to: email,
+            ...emails.SUCCESSFULLY_REGISTERED,
+        };
+
+        try {
+            await this.mailer.sendMail(mailOptions);
+        } catch (err) {
+            console.log("error sending mail", err);
+        }
 
         return {
             accessToken,

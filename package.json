@@ -35,12 +35,14 @@
     "class-validator": "^0.14.2",
     "drizzle-kit": "^0.31.2",
     "drizzle-orm": "^0.44.2",
+    "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-github": "^1.1.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.2",
     "reflect-metadata": "^0.2.2",
+    "resend": "^4.6.0",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
@@ -55,6 +57,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
+    "@types/nodemailer": "^6.4.17",
     "@types/passport-github": "^1.1.12",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/supertest": "^6.0.2",
