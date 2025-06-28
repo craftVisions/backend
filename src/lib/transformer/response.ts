@@ -1,6 +1,6 @@
 import { HttpStatus } from "@nestjs/common";
 
-export type SuccessResponseDto<T> = {
+export type ResponseDto<T> = {
     statusCode: number;
     response: {
         status: "ok";
@@ -8,7 +8,7 @@ export type SuccessResponseDto<T> = {
     };
 };
 
-export const ResponseData = <T>(data: T): SuccessResponseDto<T> => {
+export const ResponseData = <T>(data: T): ResponseDto<T> => {
     return {
         statusCode: HttpStatus.OK,
         response: {
@@ -17,6 +17,10 @@ export const ResponseData = <T>(data: T): SuccessResponseDto<T> => {
         },
     };
 };
+
+export type IdOnlyDto = ResponseDto<{
+    id: string;
+}>;
 
 export type ErrorResponseDto = {
     statusCode: number;

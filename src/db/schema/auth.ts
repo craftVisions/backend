@@ -12,4 +12,5 @@ export const auth = pgTable("auth", {
     emailVerified: boolean("email_verified").notNull().default(false),
     role: rolesEnum("role").notNull().default("user"),
     login_method: loginMethodEnum("login_method").notNull().default("local"),
+    refreshToken: text('refresh_token')
 });
