@@ -72,8 +72,8 @@ export class AuthService {
             };
         });
 
-        const accessToken = await this.generateToken({ ...user, email }, "access");
-        const refreshToken = await this.generateToken({ ...user, email }, "refresh");
+        const accessToken = await this.generateToken({ ...user, email, isEmailVerified: false }, "access");
+        const refreshToken = await this.generateToken({ ...user, email, isEmailVerified: false }, "refresh");
 
         await this.updateRefreshToken(user.credentialId, refreshToken);
 
@@ -111,6 +111,7 @@ export class AuthService {
                 email: auth.email,
                 password: auth.password,
                 id: auth.id,
+                isEmailVerified: auth.emailVerified,
             })
             .from(auth)
             .where(eq(auth.email, email))
@@ -127,8 +128,24 @@ export class AuthService {
 
         const [user] = await this.drizzleService.db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
 
-        const accessToken = await this.generateToken({ userId: user.id, credentialId: credential.id, email }, "access");
-        const refreshToken = await this.generateToken({ userId: user.id, credentialId: credential.id, email }, "refresh");
+        const accessToken = await this.generateToken(
+            {
+                userId: user.id,
+                credentialId: credential.id,
+                email,
+                isEmailVerified: credential.isEmailVerified,
+            },
+            "access",
+        );
+
+        const refreshToken = await this.generateToken(
+            {
+                userId: user.id,
+                credentialId: credential.id,
+                email,
+            },
+            "refresh",
+        );
 
         // update the refresh token in the database
         await this.updateRefreshToken(credential.id, refreshToken);
@@ -140,12 +157,15 @@ export class AuthService {
     }
 
     @HandleDbErrors(DB_ERRORS)
-    async validateRefreshToken(token: string): Promise<boolean> {
+    async validateRefreshToken(token: string): Promise<{ isEmailVerified: boolean }> {
         const [storedToken] = await this.drizzleService.db.select().from(auth).where(eq(auth.refreshToken, token)).limit(1);
         if (!storedToken) {
             throw new CustomException("Invalid Refresh Token", HttpStatus.UNAUTHORIZED);
         }
-        return true;
+        const payload = {
+            isEmailVerified: storedToken.emailVerified,
+        };
+        return payload;
     }
 
     @HandleDbErrors(DB_ERRORS)
@@ -249,7 +269,7 @@ export class AuthService {
     }
 
     @HandleDbErrors(DB_ERRORS)
-    async resetPasswordWithCurrentPassword(credentialId: string, currentPassword: string, newPassword: string): Promise<{message: string}> {
+    async resetPasswordWithCurrentPassword(credentialId: string, currentPassword: string, newPassword: string): Promise<{ message: string }> {
         const [credential] = await this.drizzleService.db.select().from(auth).where(eq(auth.id, credentialId)).limit(1);
 
         if (!credential) {
@@ -265,10 +285,10 @@ export class AuthService {
         await this.drizzleService.db.update(auth).set({ password: hashedNewPassword }).where(eq(auth.id, credentialId));
         return {
             message: "Password reset successfully",
-        }
+        };
     }
 
-    async resetPasswordWithTempToken(tempToken: string, newPassword: string): Promise<{message: string}> {
+    async resetPasswordWithTempToken(tempToken: string, newPassword: string): Promise<{ message: string }> {
         let payload: { identityId: string };
         try {
             payload = await this.jwtService.verifyAsync(tempToken, {
@@ -282,6 +302,6 @@ export class AuthService {
         await this.drizzleService.db.update(auth).set({ password: hashedNewPassword }).where(eq(auth.id, payload.identityId));
         return {
             message: "Password reset successfully",
-        }
+        };
     }
 }

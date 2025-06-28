@@ -16,7 +16,6 @@ export class RequiredRole implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const requiredRoles = this.reflector.getAllAndOverride<Roles[]>(ROLES_KEY, [context.getHandler(), context.getClass()]);
-        console.log("roles guard here..");
         if (!requiredRoles || requiredRoles.length === 0) {
             return true;
         }
@@ -26,7 +25,6 @@ export class RequiredRole implements CanActivate {
         if (!user || !user.id) {
             throw new UnauthorizedException("User not authenticated");
         }
-        // const userData = await this.authService.getAuthDetails(user.id);
         const [userData] = await this.drizzleService.db
             .select({
                 role: auth.role,

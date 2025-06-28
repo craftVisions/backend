@@ -21,13 +21,13 @@ export class RefreshTokenGuard implements CanActivate {
         }
 
         try {
-            const {exp, iat, ...payload} = await this.jwtService.verifyAsync(token, {
+            const { exp, iat, ...payload } = await this.jwtService.verifyAsync(token, {
                 secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
             });
 
-            await this.authService.validateRefreshToken(token);
+            const { isEmailVerified } = await this.authService.validateRefreshToken(token);
 
-            const accessToken = await this.authService.generateToken(payload, "access");
+            const accessToken = await this.authService.generateToken({ ...payload, isEmailVerified }, "access");
             request["accessToken"] = accessToken;
 
             return true;

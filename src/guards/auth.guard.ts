@@ -14,6 +14,8 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
+        const path = request.route?.path;
+        
         if (!token) {
             throw new UnauthorizedException();
         }
@@ -22,9 +24,13 @@ export class AuthGuard implements CanActivate {
                 secret: this.configService.get<string>("ACCESS_TOKEN_SECRET"),
             });
 
+            if (!payload.isEmailVerified && !path?.startsWith("/auth")) {
+                throw new UnauthorizedException("Email not verified");
+            }
+
             request["user"] = payload;
-        } catch {
-            throw new UnauthorizedException();
+        } catch (err) {
+            throw new UnauthorizedException(err?.message === "Email not verified" ? err.message : "Unauthorized");
         }
         return true;
     }
