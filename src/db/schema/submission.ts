@@ -1,8 +1,8 @@
-import { pgTable, uuid, timestamp, text, integer, doublePrecision } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, timestamp, text, integer, doublePrecision, numeric } from 'drizzle-orm/pg-core';
 import { users } from './user';
 import { questions } from './questions';
 
-export const solutions = pgTable('solutions', {
+export const submissions = pgTable('submissions', {
   id: uuid('id').primaryKey().defaultRandom(),
   submittedBy: uuid('submitted_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -12,6 +12,7 @@ export const solutions = pgTable('solutions', {
   language: text('language').notNull(),
   attempts: integer('attempts').notNull().default(0),
   failedAttempts: integer('failed_attempts').notNull().default(0),
+  score: numeric('score').notNull().default("0"),
   executionTime: doublePrecision('execution_time'),
   status: text('status').notNull(),
 });

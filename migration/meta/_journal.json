@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1750844500256,
-      "tag": "0000_milky_marten_broadcloak",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1750857060544,
-      "tag": "0001_salty_grim_reaper",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1751046702604,
-      "tag": "0002_bored_colonel_america",
+      "when": 1751216454003,
+      "tag": "0000_far_sway",
       "breakpoints": true
     }
   ]
