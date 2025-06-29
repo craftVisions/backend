@@ -1,0 +1,1 @@
+ALTER TABLE "questions" ALTER COLUMN "updated_by" DROP NOT NULL;

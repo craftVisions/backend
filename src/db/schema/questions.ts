@@ -11,14 +11,11 @@ export const questions = pgTable("questions", {
     createdBy: uuid("created_by")
         .notNull()
         .references(() => users.id),
-    updatedBy: uuid("updated_by")
-        .notNull()
-        .references(() => users.id),
+    updatedBy: uuid("updated_by").references(() => users.id),
     title: text("title").notNull(),
     description: text("description").notNull(),
     difficulty: difficultyEnum("difficulty").notNull(),
     points: integer("points").notNull(),
     tags: text("tags").array(),
     hints: jsonb("hints"),
-
 });

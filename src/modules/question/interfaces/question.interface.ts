@@ -1,21 +1,17 @@
-export interface CreateQuestionDto {
-  metadata?: Record<string, any>;
+export interface CreateQuestion {
   createdBy: string;
-  updatedBy: string;
   title: string;
   description: string;
-  difficulty: string; // Consider a union: 'easy' | 'medium' | 'hard'
-  points: number;
+  difficulty: "easy" | "medium" | "hard"; // Consider a union: 'easy' | 'medium' | 'hard'
   tags?: string[];
   hints?: Record<string, any>;
 }
 
-export interface UpdateQuestionDto {
-  metadata?: Record<string, any>;
+export interface UpdateQuestion {
   updatedBy?: string;
   title?: string;
   description?: string;
-  difficulty?: string;
+  difficulty?: "easy" | "medium" | "hard";
   points?: number;
   tags?: string[];
   hints?: Record<string, any>;
