@@ -16,6 +16,8 @@ import { emails } from "src/constants/email.constant";
 import { OtpService } from "./otp.service";
 import { TemplateService } from "src/lib/mailer/templates/template.service";
 import { OtpPurpose } from "src/constants/otp.constant";
+import { Roles } from "src/constants/roles.enum";
+import { isEmail } from "class-validator";
 
 const DB_ERRORS = {
     auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),
@@ -55,7 +57,7 @@ export class AuthService {
                     email,
                     password: hashedPassword,
                 })
-                .returning({ id: auth.id });
+                .returning({ id: auth.id, role: auth.role });
 
             const id = await this.userService.createUser(
                 {
@@ -69,11 +71,12 @@ export class AuthService {
             return {
                 credentialId: credential.id,
                 userId: id,
+                role: credential.role,
             };
         });
 
-        const accessToken = await this.generateToken({ ...user, email, isEmailVerified: false }, "access");
-        const refreshToken = await this.generateToken({ ...user, email, isEmailVerified: false }, "refresh");
+        const accessToken = await this.generateToken({ ...user, email, isEmailVerified: false, role: user.role }, "access");
+        const refreshToken = await this.generateToken({ ...user, email, isEmailVerified: false, role: user.role }, "refresh");
 
         await this.updateRefreshToken(user.credentialId, refreshToken);
 
@@ -112,6 +115,7 @@ export class AuthService {
                 password: auth.password,
                 id: auth.id,
                 isEmailVerified: auth.emailVerified,
+                role: auth.role,
             })
             .from(auth)
             .where(eq(auth.email, email))
@@ -134,6 +138,7 @@ export class AuthService {
                 credentialId: credential.id,
                 email,
                 isEmailVerified: credential.isEmailVerified,
+                role: credential.role,
             },
             "access",
         );
@@ -143,6 +148,8 @@ export class AuthService {
                 userId: user.id,
                 credentialId: credential.id,
                 email,
+                isEmailVerified: credential.isEmailVerified,
+                role: credential.role,
             },
             "refresh",
         );
@@ -157,13 +164,22 @@ export class AuthService {
     }
 
     @HandleDbErrors(DB_ERRORS)
-    async validateRefreshToken(token: string): Promise<{ isEmailVerified: boolean }> {
-        const [storedToken] = await this.drizzleService.db.select().from(auth).where(eq(auth.refreshToken, token)).limit(1);
-        if (!storedToken) {
+    async validateRefreshToken(token: string): Promise<{ isEmailVerified: boolean, role: string }> {
+        const [{ isEmailVerified, role, refreshToken }] = await this.drizzleService.db
+            .select({
+                isEmailVerified: auth.emailVerified,
+                role: auth.role,
+                refreshToken: auth.refreshToken,
+            })
+            .from(auth)
+            .where(eq(auth.refreshToken, token))
+            .limit(1);
+        if (!refreshToken) {
             throw new CustomException("Invalid Refresh Token", HttpStatus.UNAUTHORIZED);
         }
         const payload = {
-            isEmailVerified: storedToken.emailVerified,
+            isEmailVerified,
+            role,
         };
         return payload;
     }

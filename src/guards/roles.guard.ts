@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, HttpStatus } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthService } from "../modules/auth/auth.service";
 import { ROLES_KEY } from "src/lib/decorators/role";
@@ -6,13 +6,11 @@ import { Roles } from "src/constants/roles.enum";
 import { DrizzleService } from "src/db/drizzle.service";
 import { auth } from "src/db/schema";
 import { eq } from "drizzle-orm";
+import { CustomException } from "src/lib/exception/custom-exception";
 
 @Injectable()
 export class RequiredRole implements CanActivate {
-    constructor(
-        private reflector: Reflector,
-        private readonly drizzleService: DrizzleService,
-    ) {}
+    constructor(private reflector: Reflector) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const requiredRoles = this.reflector.getAllAndOverride<Roles[]>(ROLES_KEY, [context.getHandler(), context.getClass()]);
@@ -21,21 +19,14 @@ export class RequiredRole implements CanActivate {
         }
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-
-        if (!user || !user.id) {
-            throw new UnauthorizedException("User not authenticated");
+        console.log("User in RequiredRole Guard:", user);
+        if (!user || !user.role) {
+            throw new UnauthorizedException("Unauthorized access");
         }
-        const [userData] = await this.drizzleService.db
-            .select({
-                role: auth.role,
-            })
-            .from(auth)
-            .where(eq(auth.id, user.id))
-            .limit(1);
 
-        const hasRequiredRole = requiredRoles.includes(userData.role as Roles);
+        const hasRequiredRole = requiredRoles.includes(user.role as Roles);
         if (!hasRequiredRole) {
-            throw new UnauthorizedException("You do not have permission to access this resource");
+            throw new CustomException("Forbidden Resource", HttpStatus.FORBIDDEN);
         }
         return true;
     }

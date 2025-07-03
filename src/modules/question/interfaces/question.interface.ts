@@ -8,11 +8,10 @@ export interface CreateQuestion {
 }
 
 export interface UpdateQuestion {
-  updatedBy?: string;
+  updatedBy: string;
   title?: string;
   description?: string;
   difficulty?: "easy" | "medium" | "hard";
-  points?: number;
   tags?: string[];
   hints?: Record<string, any>;
 }
