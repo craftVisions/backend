@@ -25,9 +25,9 @@ export class RefreshTokenGuard implements CanActivate {
                 secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
             });
 
-            const { isEmailVerified } = await this.authService.validateRefreshToken(token);
+            const { isEmailVerified, role } = await this.authService.validateRefreshToken(token);
 
-            const accessToken = await this.authService.generateToken({ ...payload, isEmailVerified }, "access");
+            const accessToken = await this.authService.generateToken({ ...payload, isEmailVerified, role }, "access");
             request["accessToken"] = accessToken;
 
             return true;

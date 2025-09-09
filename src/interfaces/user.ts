@@ -3,4 +3,5 @@ export interface User {
     credentialId: string; 
     email: string;
     isEmailVerified?: boolean;
+    role: string;
 }

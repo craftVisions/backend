@@ -9,8 +9,8 @@ export const testCases = pgTable('test_cases', {
   createdBy: uuid('created_by').notNull().references(() => users.id),
   updatedBy: uuid('updated_by').notNull().references(() => users.id),
   questionId: uuid('question_id').notNull().references(() => questions.id),
-  isSample: boolean('is_sample').notNull(),
+  isSample: boolean('is_sample').notNull().default(false),
   input: text('input').notNull(),
   expectedOutput: text('expected_output').notNull(),
-  timeoutSecs: integer('timeout_secs').notNull(),
+  timeoutMs: integer('timeoutMs').notNull(),
 });
