@@ -1,13 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { RegisterDto } from "./dto/register.dto";
-import { ResponseData, ResponseDto } from "src/lib/transformer/response";
-import { LoginDto } from "./dto/login.dto";
-import { RefreshTokenGuard } from "src/guards/refresh-token.guard";
-import { ForgotPasswordReqDto, ResetPasswordWithCurrentReqDto, ResetPasswordWithTempToken, VerifyOtpReqDto, VerifyOtpWithEmailReqDto } from "./dto/auth-req.dto";
-import { UserContext } from "src/lib/decorators/user-context";
-import { User } from "src/interfaces/user";
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/guards/auth.guard";
+import { RefreshTokenGuard } from "src/guards/refresh-token.guard";
+import { User } from "src/interfaces/user";
+import { UserContext } from "src/lib/decorators/user-context";
+import { ResponseData, ResponseDto } from "src/lib/transformer/response";
+import { AuthService } from "./auth.service";
+import { ForgotPasswordReqDto, ResetPasswordWithCurrentReqDto, ResetPasswordWithTempToken, VerifyOtpReqDto, VerifyOtpWithEmailReqDto } from "./dto/auth-req.dto";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
 
 @Controller("auth")
 export class AuthController {

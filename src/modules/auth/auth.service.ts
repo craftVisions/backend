@@ -1,23 +1,21 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { compare, hash } from "bcrypt";
+import { eq } from "drizzle-orm";
+import { emails } from "src/constants/email.constant";
+import { OtpPurpose } from "src/constants/otp.constant";
 import { DrizzleService } from "src/db/drizzle.service";
 import { auth } from "src/db/schema";
-import { UserService } from "../user/user.service";
-import { Login, Register } from "./interfaces/auth.interface";
-import { HandleDbErrors } from "src/lib/decorators/handle-db-errors";
-import { hash, compare } from "bcrypt";
-import { CustomException } from "src/lib/exception/custom-exception";
-import { eq } from "drizzle-orm";
 import { users } from "src/db/schema/user";
 import { User } from "src/interfaces/user";
-import { ConfigService } from "@nestjs/config";
+import { HandleDbErrors } from "src/lib/decorators/handle-db-errors";
+import { CustomException } from "src/lib/exception/custom-exception";
 import { Mailer } from "src/lib/mailer/mailer.service";
-import { emails } from "src/constants/email.constant";
-import { OtpService } from "./otp.service";
 import { TemplateService } from "src/lib/mailer/templates/template.service";
-import { OtpPurpose } from "src/constants/otp.constant";
-import { Roles } from "src/constants/roles.enum";
-import { isEmail } from "class-validator";
+import { UserService } from "../user/user.service";
+import { Login, Register } from "./interfaces/auth.interface";
+import { OtpService } from "./otp.service";
 
 const DB_ERRORS = {
     auth_email_unique: new CustomException("Email already Exists", HttpStatus.CONFLICT),

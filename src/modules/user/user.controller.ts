@@ -13,7 +13,6 @@ export class UserController {
 
     @Get()
     async findAll(@UserContext() {userId}: User) {
-        console.log({userId})
         const users = await this.userService.searchUsers();
         return ResponseData({ users });
     }

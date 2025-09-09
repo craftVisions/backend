@@ -55,11 +55,25 @@ export class QuestionService {
             throw new CustomException("Question not found", HttpStatus.NOT_FOUND);
         }
 
-        return question;
+        return question.id;
     }
 
     async getQuestionById(id: string) {
-        const [question] = await this.drizzleService.db.select().from(questions).where(eq(questions.id, id)).limit(1);
+        const [question] = await this.drizzleService.db
+            .select({
+                id: questions.id,
+                createdAt: questions.createdAt,
+                createdBy: questions.createdBy,
+                title: questions.title,
+                description: questions.description,
+                difficulty: questions.difficulty,
+                points: questions.points,
+                tags: questions.tags,
+                hints: questions.hints,
+            })
+            .from(questions)
+            .where(eq(questions.id, id))
+            .limit(1);
 
         if (!question) {
             throw new CustomException("Question not found", HttpStatus.NOT_FOUND);
@@ -69,9 +83,24 @@ export class QuestionService {
     }
 
     async getAllQuestions() {
-        return await this.drizzleService.db.select().from(questions);
+        const questionsList = await this.drizzleService.db
+            .select({
+                id: questions.id,
+                createdAt: questions.createdAt,
+                createdBy: questions.createdBy,
+                title: questions.title,
+                description: questions.description,
+                difficulty: questions.difficulty,
+                points: questions.points,
+                tags: questions.tags,
+                hints: questions.hints,
+            })
+            .from(questions);
+
+        return questionsList;
     }
 
+    @HandleDbErrors(DB_ERRORS)
     async deleteQuestion(id: string) {
         const result = await this.drizzleService.db.delete(questions).where(eq(questions.id, id));
 
@@ -79,8 +108,6 @@ export class QuestionService {
             throw new CustomException("Question not found", HttpStatus.NOT_FOUND);
         }
 
-        return {
-            message: "Question deleted successfully",
-        };
+       return id;
     }
 }
